@@ -7,36 +7,37 @@ const $numberBoard = $("#number-board");
 const $difficulty = $("#difficulty");
 const $errors = $("#errors");
 const $button = $(".btn");
-let scoreErrors = 0;
 
 //instance of Game
 let game;
 
+/**Creates a working 9x9 sudoku board game */
 class Game {
-  /**Creates a working 9x9 sudoku board game */
   constructor(height = 9, width = 9) {
     this.height = height;
     this.width = width;
+    this.difficulty = null;
     this.numSelected = null;
     this.tileSelected = null;
     this.board = null;
     this.solution = null;
-
-
-
+    this.scoreErrors = 0;
   }
 
+  /**On start, retrieve board data from API and set up game and number
+   * board
+   */
   async start() {
     const boardData = await this.getBoardDataFromAPI();
     this.setBoard(boardData.value);
-    this.setDigits();
-    this.setDifficult(boardData.difficulty);
+    this.setNumbers();
+    this.setDifficulty(boardData.difficulty);
     this.board = boardData.value;
     this.solution = boardData.solution;
   }
 
+  /**Creates 9x9 HTML board and appends it to the $htmlBoard*/
   setBoard(board) {
-    /**Creates 9x9 HTML board */
     $htmlBoard.text = "";
     for (let y = 0; y < this.height; y++) {
       const $row = $("<tr>");
@@ -64,24 +65,21 @@ class Game {
       }
       $htmlBoard.append($row);
     }
-
-    //$cell.innerText
   }
 
-  /**Displays digits 1-9 at the bottom of the board and appends it */
-  setDigits() {
+  /**Displays numbers 1-9 at the bottom of the board and appends it */
+  setNumbers() {
     for (let i = 1; i <= 9; i++) {
-      const $number = $(`<div id=${i} class="number"> ${i}</div>`);
+      const $number = $(`<div id=${i} class="number">${i}</div>`);
       $numberBoard.append($number);
     }
-    // console.log("set game done");
   }
 
-  /**Displays difficulty level in the dom */
-  setDifficult(difficulty) {
+  /**Displays difficulty level in the dom*/
+  setDifficulty(difficulty) {
     $difficulty.text(difficulty);
+    this.difficulty = difficulty;
     //console.log($difficulty);
-
   }
 
   /**Retrieves board data from API and returns it
@@ -122,7 +120,7 @@ class Game {
 
 $numberBoard.on("click", "div", selectNumber);
 
-/**Handles click on number board, changing color for selected digit.
+/**Handles click on number board, changing color for selected num.
  * Updates numSelected property on game instance
 */
 function selectNumber(evt) {
@@ -142,8 +140,8 @@ $htmlBoard.on("click", "td", selectTile);
 
 /**Handles click on sudoku board and updates HTML board and JS board with num
  * selected. Checks if tile selected is a starter-tile. If true, it returns.
- * Checks against API solution board and highlights correct/incorrect
- * answers. Updates error count.
+ * Checks if a num is selected. Checks against API solution board and highlights
+ * correct/incorrect answers. Updates error count.
 */
 function selectTile(evt) {
   console.log("selectTile", evt);
@@ -165,8 +163,8 @@ function selectTile(evt) {
     game.tileSelected.addClass("tile-selected");
     }else{
       game.tileSelected.addClass("error");
-      scoreErrors+= 1;
-      $errors.text(scoreErrors);
+      game.scoreErrors+= 1;
+      $errors.text(game.scoreErrors);
     }
   }
 }
@@ -174,7 +172,9 @@ function selectTile(evt) {
 
 $button.on("click", handleStartClick)
 
-/**Handles start click. Starts game and creates a new game instance*/
+/**Handles start click. Empties board, creates a new game instance, and starts
+ * game
+*/
 async function handleStartClick(evt){
   $htmlBoard.empty()
   $numberBoard.empty()
